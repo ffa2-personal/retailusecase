@@ -1,0 +1,158 @@
+# Single source of truth for scale, seeds, calendar, and scenario parameters.
+# Every generator module reads from here -- nothing scale- or scenario-related
+# should be hardcoded inside the generator code itself.
+
+seed: 42
+dev_mode: false   # true = small fast dataset for iteration; false = full enterprise-scale build
+
+paths:
+  raw_dir: "data/raw"
+  duckdb_path: "data/warehouse/retail.duckdb"
+
+calendar:
+  fiscal_start_date: "2023-02-06"   # Monday. 156 weeks -> 3 fiscal years, ends 2026-01-25
+  n_weeks_full: 156
+  n_weeks_dev: 40
+  as_of_date: "2025-12-01"          # "Monday morning" snapshot date used by the demo
+
+# ---------------------------------------------------------------------------
+# Regions: every store belongs to exactly one of these. Also drives weather.
+# ---------------------------------------------------------------------------
+regions:
+  - {region_code: ONT, name: "Ontario",                country: CA, currency: CAD, climate_zone: cold,     stores_full: 9,  stores_dev: 2, dc: DC-NAEAST}
+  - {region_code: WCA, name: "Western Canada",         country: CA, currency: CAD, climate_zone: cold,     stores_full: 8,  stores_dev: 2, dc: DC-NAWEST}
+  - {region_code: QCA, name: "Quebec/Atlantic",        country: CA, currency: CAD, climate_zone: cold,     stores_full: 5,  stores_dev: 1, dc: DC-NAEAST}
+  - {region_code: USNE, name: "US Northeast",          country: US, currency: USD, climate_zone: cold,     stores_full: 22, stores_dev: 2, dc: DC-NAEAST}
+  - {region_code: USMW, name: "US Midwest",            country: US, currency: USD, climate_zone: cold,     stores_full: 23, stores_dev: 1, dc: DC-NAWEST}
+  - {region_code: USSO, name: "US South",              country: US, currency: USD, climate_zone: mild,     stores_full: 23, stores_dev: 1, dc: DC-NAWEST}
+  - {region_code: USWE, name: "US West",               country: US, currency: USD, climate_zone: mild,     stores_full: 22, stores_dev: 1, dc: DC-NAWEST}
+  - {region_code: JPN, name: "Japan",                  country: JP, currency: JPY, climate_zone: temperate, stores_full: 18, stores_dev: 1, dc: DC-APAC}
+  - {region_code: CNE, name: "China East",             country: CN, currency: CNY, climate_zone: temperate, stores_full: 12, stores_dev: 1, dc: DC-APAC}
+  - {region_code: CNW, name: "China West",             country: CN, currency: CNY, climate_zone: temperate, stores_full: 10, stores_dev: 1, dc: DC-APAC}
+  - {region_code: APC, name: "Rest of APAC",           country: SG, currency: USD, climate_zone: warm,     stores_full: 8,  stores_dev: 1, dc: DC-APAC}
+  - {region_code: UKI, name: "UK & Ireland",           country: GB, currency: GBP, climate_zone: cold,     stores_full: 20, stores_dev: 1, dc: DC-EUUK}
+  - {region_code: FRA, name: "France",                 country: FR, currency: EUR, climate_zone: temperate, stores_full: 16, stores_dev: 1, dc: DC-EUCEN}
+  - {region_code: DAC, name: "DACH",                   country: DE, currency: EUR, climate_zone: cold,     stores_full: 22, stores_dev: 1, dc: DC-EUCEN}
+  - {region_code: ITA, name: "Italy",                  country: IT, currency: EUR, climate_zone: temperate, stores_full: 18, stores_dev: 1, dc: DC-EUCEN}
+  - {region_code: NOR, name: "Nordics",                country: SE, currency: EUR, climate_zone: cold,     stores_full: 14, stores_dev: 1, dc: DC-EUCEN}
+  - {region_code: BLX, name: "Benelux/Iberia",         country: NL, currency: EUR, climate_zone: temperate, stores_full: 18, stores_dev: 1, dc: DC-EUCEN}
+  - {region_code: MEA, name: "Middle East",            country: AE, currency: USD, climate_zone: warm,     stores_full: 12, stores_dev: 1, dc: DC-MEA}
+
+dcs:
+  - {dc_id: DC-NAEAST, name: "North America East DC", city: Edison,        country: US, capacity_units: 900000}
+  - {dc_id: DC-NAWEST, name: "North America West DC", city: Reno,          country: US, capacity_units: 900000}
+  - {dc_id: DC-EUCEN,  name: "Europe Central DC",      city: Liege,         country: BE, capacity_units: 1100000}
+  - {dc_id: DC-EUUK,   name: "UK DC",                  city: "Milton Keynes", country: GB, capacity_units: 350000}
+  - {dc_id: DC-APAC,   name: "APAC DC",                city: Osaka,         country: JP, capacity_units: 700000}
+  - {dc_id: DC-MEA,    name: "Middle East DC",         city: Dubai,         country: AE, capacity_units: 200000}
+
+# Hero (named) entities used by scenarios. Fixed IDs so scenario code and
+# notebooks can reference them directly instead of discovering them at random.
+hero_stores:
+  - {store_id: ST-TOR-01, region_code: ONT, city: Toronto,   name: "Toronto Eaton Centre",     tier: Flagship}
+  - {store_id: ST-TOR-02, region_code: ONT, city: Toronto,   name: "Toronto Yorkdale",          tier: A}
+  - {store_id: ST-VAN-01, region_code: WCA, city: Vancouver, name: "Vancouver Pacific Centre",  tier: Flagship}
+  - {store_id: ST-VAN-02, region_code: WCA, city: Vancouver, name: "Vancouver Oakridge",        tier: A}
+  - {store_id: ST-NYC-01, region_code: USNE, city: "New York", name: "New York Fifth Avenue",   tier: Flagship}
+  - {store_id: ST-MIL-01, region_code: ITA, city: Milan,     name: "Milan Via Montenapoleone",  tier: Flagship}
+
+hero_supplier: {supplier_id: SUP-ADRIATIC, name: "Adriatic Outerwear Manufacturing S.p.A.", country: IT, primary_category: Outerwear, primary_dc: DC-EUCEN}
+
+hero_campaign: {campaign_id: CMP-MILAN-TRUNK, name: "Milan Flagship Private Trunk Show", start_date: "2025-03-10", end_date: "2025-03-24", target_store_id: ST-MIL-01, target_segment: "Private Client", cohort_size_full: 1400, cohort_size_dev: 120}
+
+hero_styles:
+  - {style_id: STY-EXP-PARKA, name: "Expedition Parka", category: Outerwear, gender: Mens,   warmth_rating: 5, hero_color: Black, hero_size: M}
+  - {style_id: STY-ARC-PARKA, name: "Arctic Parka",     category: Outerwear, gender: Mens,   warmth_rating: 5, hero_color: Navy,  hero_size: L}
+  - {style_id: STY-CHE-PARKA, name: "Chelsea Parka",    category: Outerwear, gender: Womens, warmth_rating: 4, hero_color: Camel, hero_size: M}
+  - {style_id: STY-AUR-BOMBER, name: "Aurora Bomber",   category: Outerwear, gender: Womens, warmth_rating: 3, hero_color: Black, hero_size: M}
+
+capsule:
+  style_prefix: STY-PORTO
+  name_prefix: "Portofino Capsule"
+  n_styles: 12
+  launch_date: "2025-11-03"
+  categories: [Outerwear, Knitwear, Accessories]
+
+# ---------------------------------------------------------------------------
+# Catalog / customer / supplier / campaign scale
+# ---------------------------------------------------------------------------
+scale:
+  full: {n_styles: 1200, n_customers: 500000, n_suppliers: 60, n_campaigns: 45}
+  dev:  {n_styles: 60,   n_customers: 20000,  n_suppliers: 10, n_campaigns: 8}
+
+categories: [Outerwear, Knitwear, Tailoring, Accessories, Footwear]
+category_mix: {Outerwear: 0.22, Knitwear: 0.22, Tailoring: 0.18, Accessories: 0.23, Footwear: 0.15}
+seasonal_drops: [SS2023, FW2023, SS2024, FW2024, SS2025, FW2025]
+
+# ---------------------------------------------------------------------------
+# Scenario parameters
+# ---------------------------------------------------------------------------
+scenarios:
+  weather_shock:
+    warm_regions: [ONT, USNE]
+    cold_regions: [WCA, NOR]
+    start_date: "2025-10-27"
+    temp_dev_c_range: [4.0, 6.0]
+    warmth_rating_threshold: 4
+
+  viral_product:
+    style_id: STY-AUR-BOMBER
+    trigger_date: "2025-11-10"
+    spike_weeks: 3
+    spike_multiplier: 5.0
+    settle_multiplier: 2.0
+    flagship_extra_weight: 1.6
+    ecommerce_extra_weight: 1.4
+
+  fit_problem:
+    style_id: STY-CHE-PARKA
+    sizes: [M, L]
+    start_date: "2025-10-20"
+    baseline_return_rate: 0.11
+    injected_return_rate_range: [0.19, 0.22]
+
+  supply_disruption:
+    supplier_id: SUP-ADRIATIC
+    dc_id: DC-EUCEN
+    affected_regions: [FRA, DAC, ITA, NOR, BLX]
+    n_affected_styles: 15
+    order_date: "2025-08-25"
+    original_expected_receipt_date: "2025-11-17"
+    delay_days: 12
+    avg_unit_retail_eur: 650
+
+  poor_allocation:
+    hero_styles: [STY-EXP-PARKA, STY-ARC-PARKA]
+    n_additional_style_colors: 10
+    surplus_regions: [ONT, USNE]
+    shortage_regions: [WCA, NOR, ITA]
+    surplus_overallocation_pct: 0.35
+    shortage_underallocation_pct: 0.35
+    replenishment_lead_time_days: [5, 7]
+
+  milan_cohort:
+    campaign_id: CMP-MILAN-TRUNK
+    repeat_purchase_lift: 2.1
+    capsule_affinity_lift_range: [3.0, 4.0]
+
+# ---------------------------------------------------------------------------
+# Verification bands (used by scripts/verify_build.py)
+# ---------------------------------------------------------------------------
+verify:
+  # Bands reflect the actual full-scale build (sales/inventory land lower than the
+  # original back-of-envelope estimate because assortment coverage is sparse by
+  # design -- not every store carries every SKU; PO/shipment rows are at
+  # style x DC x buy-wave grain, not exploded to every color/size).
+  row_count_bands_full:
+    fact_sales_line: [3000000, 9000000]
+    fact_inventory_position: [8000000, 16000000]
+    fact_returns_line: [600000, 2000000]
+    fact_purchase_order_line: [2000, 10000]
+    fact_shipment_event: [8000, 35000]
+    fact_campaign_exposure: [300000, 800000]
+    fact_digital_engagement: [300000, 1200000]
+  scenario_thresholds:
+    weather_temp_dev_min_c: 3.0
+    fit_return_rate_min: 0.18
+    supply_delay_days: 12
+    milan_cohort_lift_min: 1.5
