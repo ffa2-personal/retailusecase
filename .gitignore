@@ -3,5 +3,6 @@ __pycache__/
 *.pyc
 data/raw/
 data/warehouse/
+data/stream/
 .ipynb_checkpoints/
 *.egg-info/

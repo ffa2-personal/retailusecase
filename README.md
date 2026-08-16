@@ -26,6 +26,8 @@ lifted onto a Microsoft Fabric Lakehouse later with minimal change.
 - **Nine notebooks** that discover each scenario by querying the data (not by
   printing hardcoded narrative numbers), culminating in a live "5 Decisions Require
   Attention" executive planner workspace
+- A **live POS feed** for the demo itself: a presenter-triggered viral spike you can
+  watch unfold in real time, separate from the batch dataset above (see below)
 
 ## Setup
 
@@ -75,16 +77,40 @@ Open `notebooks/` in order:
 | 06 | `06_poor_allocation` | **Flagship notebook** — Toronto/Vancouver 3-option transfer decision + human approval |
 | 07 | `07_high_value_customer_cohort` | Cohort discovery, next-best-client ranking |
 | 08 | `08_executive_planner_workspace` | The "5 Decisions Require Attention" screen, live from `gold.decision_queue`, and the executive exposure/recovery rollup |
+| 09 | `09_live_pos_feed` | *(live demo only)* Watches `scripts/pos_stream_simulator.py`'s real-time feed; the same stockout decision as notebook 03, happening on screen |
+
+## Live POS feed (for the live demo)
+
+A separate, presenter-controlled real-time layer that dramatizes the Aurora Bomber
+viral-product scenario (notebook 03) live instead of from history. It never touches
+`retail.duckdb` in read-write mode — it hands off data through parquet files in
+`data/stream/` (gitignored, ephemeral), so the verified batch warehouse is never at risk.
+
+Terminal 1 (start it once, leave it running):
+```
+python scripts/pos_stream_simulator.py
+```
+
+Then open `notebooks/09_live_pos_feed.ipynb` and run its live-view cell — it polls
+the stream and renders a rolling ticker plus an Aurora Bomber on-hand-by-store panel
+that lights up as a live stockout decision.
+
+Terminal 2, whenever you're ready for the spike (~30–60s to visible stockouts):
+```
+python scripts/pos_stream_trigger.py
+```
 
 ## Repo layout
 
 ```
 config/scenario_config.yaml   single source of truth: scale, seeds, scenario params
 src/retail_synth/             generators (dimensions/, facts/) + bronze/silver/gold pipeline
+src/retail_synth/live_model.py  demand-model pieces shared by the batch generator and the live simulator
 sql/silver/, sql/gold/        SQL transforms run by the pipeline
 scripts/verify_build.py       post-build sanity + scenario-signal checks
-notebooks/                    the 9 demo notebooks
-data/                         generated output (gitignored, regenerable via run_all)
+scripts/pos_stream_simulator.py, pos_stream_trigger.py   the live POS feed for the demo
+notebooks/                    the 10 demo notebooks (00-08 batch, 09 live)
+data/                         generated output (gitignored, regenerable via run_all / the simulator)
 ```
 
 ## Next step: Microsoft Fabric

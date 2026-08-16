@@ -24,26 +24,14 @@ import pandas as pd
 from ..calendar import date_to_week_id
 from ..config import Config
 from ..io_utils import write_table
+from ..live_model import BASE_SCALE as _BASE_SCALE
+from ..live_model import CATEGORY_HOLIDAY_FACTOR as _CATEGORY_HOLIDAY_FACTOR
+from ..live_model import TIER_WEIGHT as _TIER_WEIGHT
+from ..live_model import lifecycle_mult as _lifecycle_mult
 
-_TIER_WEIGHT = {"Flagship": 3.0, "A": 1.5, "B": 0.8, "C": 0.4}
-_CATEGORY_HOLIDAY_FACTOR = {"Outerwear": 1.6, "Knitwear": 1.6, "Tailoring": 1.2, "Accessories": 1.3, "Footwear": 1.3}
-_BASE_SCALE = 0.55
 _AVG_MULT_FOR_SIZING = 0.45
 _TARGET_SELLTHROUGH_NORMAL = 0.80
 _INITIAL_ALLOC_FRACTION = 0.55
-
-
-def _lifecycle_mult(t: np.ndarray) -> np.ndarray:
-    out = np.empty_like(t, dtype="float32")
-    ramp = t < 4
-    peak = (t >= 4) & (t < 17)
-    decline = (t >= 17) & (t < 31)
-    tail = t >= 31
-    out[ramp] = 0.3 + 0.175 * t[ramp]
-    out[peak] = 1.0
-    out[decline] = 1.0 - (t[decline] - 17) * (0.65 / 14)
-    out[tail] = 0.455
-    return out
 
 
 def build_demand_and_inventory(
