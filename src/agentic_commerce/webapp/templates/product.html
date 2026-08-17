@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+{% block title %}{{ style.style_name }} — {{ brand_name }}{% endblock %}
+{% block content %}
+<article class="product-detail">
+  <div class="swatch" style="background-color: {{ color_hex(selected_color) }}" aria-hidden="true"></div>
+
+  <div class="product-info">
+    <h1>{{ style.style_name }}</h1>
+    <p class="product-meta">{{ style.category }} &middot; {{ style.gender }}</p>
+
+    {% if sizes %}
+    {% set lo = sizes|map(attribute='current_retail_price')|min %}
+    {% set hi = sizes|map(attribute='current_retail_price')|max %}
+    <p class="detail-price">
+      ${{ "%.0f"|format(lo) }}{% if hi != lo %}&ndash;${{ "%.0f"|format(hi) }}{% endif %}
+    </p>
+    {% endif %}
+
+    <ul class="spec-list">
+      <li><span class="k">Silhouette</span> <span>{{ style.silhouette }}</span></li>
+      <li><span class="k">Material</span> <span>{{ style.material }}</span></li>
+      <li>
+        <span class="k">Warmth</span>
+        <span class="warmth" aria-label="Warmth {{ style.warmth_rating }} of 5">
+          {% for i in range(1,6) %}<i class="{% if i <= style.warmth_rating %}on{% endif %}"></i>{% endfor %}
+        </span>
+      </li>
+    </ul>
+
+    <h2>Color — {{ selected_color }}</h2>
+    <nav class="color-picker" aria-label="Choose a color">
+      {% for c in colors %}
+      <a href="{{ url_for('product_detail', style_id=style.style_id, color=c) }}"
+         class="color-link {% if c == selected_color %}selected{% endif %}"
+         {% if c == selected_color %}aria-current="true"{% endif %}>
+        <span class="chip" style="background-color: {{ color_hex(c) }}"></span>
+        {{ c }}
+      </a>
+      {% endfor %}
+    </nav>
+
+    <h2>Size &amp; Availability</h2>
+    <table class="size-table">
+      <thead><tr><th>Size</th><th>Price</th><th>Availability</th><th></th></tr></thead>
+      <tbody>
+      {% for v in sizes %}
+        <tr {% if v.on_hand_units <= 0 %}class="out"{% endif %}>
+          <td>{{ v.size }}</td>
+          <td>${{ "%.0f"|format(v.current_retail_price) }}</td>
+          <td>
+            {% if v.on_hand_units <= 0 %}
+              <span class="stock none">Sold out</span>
+            {% elif v.on_hand_units <= 10 %}
+              <span class="stock low">Low stock &mdash; {{ v.on_hand_units }} left</span>
+            {% else %}
+              <span class="stock">In stock</span>
+            {% endif %}
+          </td>
+          <td>
+            {% if v.on_hand_units > 0 %}
+            <form method="post" action="{{ url_for('cart_add') }}">
+              <input type="hidden" name="sku_id" value="{{ v.sku_id }}">
+              <button type="submit" aria-label="Add {{ style.style_name }} size {{ v.size }} in {{ selected_color }} to cart">Add</button>
+            </form>
+            {% endif %}
+          </td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+
+    {% if complementary %}
+    <h2>Styled With</h2>
+    <div class="product-grid">
+      {% for item in complementary %}
+      <a class="product-card" href="{{ url_for('product_detail', style_id=item.style_id) }}">
+        <div class="swatch" style="background-color: {{ hero_color(item.style_id, item.colors) }}" aria-hidden="true"></div>
+        <div class="product-name">{{ item.style_name }}</div>
+        <div class="product-meta">{{ item.category }} &middot; {{ item.silhouette }}</div>
+        <div class="product-price">from ${{ "%.0f"|format(item.min_price) }}</div>
+      </a>
+      {% endfor %}
+    </div>
+    {% endif %}
+  </div>
+</article>
+{% endblock %}

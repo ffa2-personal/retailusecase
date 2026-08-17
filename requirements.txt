@@ -13,3 +13,14 @@ jupyterlab>=4.2
 notebook>=7
 nbconvert>=7
 ipykernel>=6.29
+
+# agentic shopping assistant (Microsoft Agent Framework + Azure AI Foundry)
+# NOTE: the bare `agent-framework` metapackage pulls in every provider
+# integration (Claude, Copilot Studio, Redis, S3, etc.) -- a much heavier
+# install than this project needs. `agent-framework-foundry` alone provides
+# core + the Foundry-specific pieces (Agent, FoundryChatClient) and is enough.
+agent-framework-foundry>=1.14
+azure-identity>=1.19
+python-dotenv>=1.0
+pydantic>=2.7
+flask>=3.0

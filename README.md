@@ -28,6 +28,12 @@ lifted onto a Microsoft Fabric Lakehouse later with minimal change.
   Attention" executive planner workspace
 - A **live POS feed** for the demo itself: a presenter-triggered viral spike you can
   watch unfold in real time, separate from the batch dataset above (see below)
+- An **agentic shopping assistant** (GEO / Agentic Commerce Readiness, use cases #15-16
+  in the strategy doc): a chat panel embedded on a small storefront webapp, built on
+  Microsoft Agent Framework against hosted GPT-5 in Azure AI Foundry, that recommends
+  real catalog products from a natural-language ask, opens them on screen as it looks
+  them up, helps choose size/color, offers a simulated upsell, and completes a
+  simulated checkout (see below)
 
 ## Setup
 
@@ -100,6 +106,50 @@ Terminal 2, whenever you're ready for the spike (~30–60s to visible stockouts)
 python scripts/pos_stream_trigger.py
 ```
 
+## Agentic shopping assistant (GEO / Agentic Commerce)
+
+A separate, standalone conversational demo — not part of the six-scenario planning
+proof above. Proves that a real AI agent can discover, recommend, and sell from this
+catalog end to end: natural-language ask → recommendations → product opens on screen
+→ choose size/color → simulated upsell → simulated checkout — all inside one browser
+window, chatting with a panel embedded on the storefront itself.
+
+> **Full technical write-up:** [`agentic_shopping_agent.md`](agentic_shopping_agent.md)
+> — architecture, the tool layer, how the storefront follows the conversation,
+> engineering decisions, and a demo script.
+
+Built on [Microsoft Agent Framework](https://learn.microsoft.com/en-us/agent-framework/overview/)
+(the AutoGen + Semantic Kernel successor) against **hosted GPT-5 in Azure AI Foundry**,
+using `agent_framework.openai.OpenAIChatCompletionClient` against the classic Azure
+OpenAI chat-completions endpoint (the newer Foundry-project "Responses" surface
+returned a bodyless 403 on our account — a gateway-level issue, confirmed independent
+of RBAC; the classic endpoint on the same GPT-5 deployment works cleanly). The tool
+layer (`src/agentic_commerce/session.py`) is plain DuckDB/Python and independently
+testable with no LLM or Azure credentials involved; only the chat itself needs a live
+model. The agent, cart, and storefront all share one `ShoppingSession`
+(`shared_session.py`), so an item it adds shows up on `/cart` too.
+
+**One-time setup:**
+1. `az login` (requires the Azure CLI — see Setup above; an existing Azure subscription
+   with an Azure AI Foundry / Cognitive Services "AIServices" resource + a GPT-5
+   deployment).
+2. `copy .env.example .env` and fill in `AZURE_AI_ENDPOINT` / `AZURE_AI_DEPLOYMENT`.
+
+**Run it:**
+```
+python scripts/run_webapp.py
+```
+Open `http://localhost:5000` — the chat panel is on every page. The Azure connection
+only spins up lazily on your first message, so the storefront itself loads instantly
+even before that.
+
+`python scripts/shopping_agent_chat.py` is a terminal-only variant of the same agent
+for a fast sanity check without the webapp/browser involved.
+
+`get_complementary_items` (the upsell/next-best-item suggestion) is a simple
+category-pairing heuristic, explicitly documented as simulated in its own docstring
+— not a real behavioral recommender.
+
 ## Repo layout
 
 ```
@@ -109,6 +159,12 @@ src/retail_synth/live_model.py  demand-model pieces shared by the batch generato
 sql/silver/, sql/gold/        SQL transforms run by the pipeline
 scripts/verify_build.py       post-build sanity + scenario-signal checks
 scripts/pos_stream_simulator.py, pos_stream_trigger.py   the live POS feed for the demo
+src/agentic_commerce/         shopping-agent tool layer (session.py), shared cart state
+                               (shared_session.py), agent wiring (agent.py), the
+                               background chat runtime (chat_backend.py), and the
+                               storefront webapp (webapp/)
+scripts/run_webapp.py         starts the storefront + embedded chat (the real demo)
+scripts/shopping_agent_chat.py   terminal-only agent sanity check, no webapp needed
 notebooks/                    the 10 demo notebooks (00-08 batch, 09 live)
 data/                         generated output (gitignored, regenerable via run_all / the simulator)
 ```

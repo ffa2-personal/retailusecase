@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}{{ brand_name }}{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <div class="announce">Complimentary shipping on every order &middot; Simulated demo storefront</div>
+  <header class="site-header">
+    <a class="brand" href="{{ url_for('home') }}">{{ brand_name }}</a>
+    <nav>
+      <a href="{{ url_for('home') }}">Shop</a>
+      <a href="{{ url_for('cart_view') }}">Cart <span class="cart-count">({{ cart_count }})</span></a>
+    </nav>
+  </header>
+  <div class="page-layout">
+    <main>
+      {% block content %}{% endblock %}
+    </main>
+    <aside class="chat-sidebar">
+      <div class="chat-head">
+        <p class="title">Personal Shopper</p>
+        <p class="sub">AI Concierge</p>
+      </div>
+      <div class="chat-messages" id="chat-messages">
+        {% for msg in chat_history %}
+        <div class="chat-bubble chat-{{ msg.role }}">{{ msg.text }}</div>
+        {% else %}
+        <p class="chat-empty">Tell me what you're looking for &mdash; the occasion, the weather, the
+          look &mdash; and I'll pull pieces from the collection, check your size, and take you
+          through to checkout.</p>
+        {% endfor %}
+      </div>
+      <form method="post" action="{{ url_for('chat') }}" class="chat-form"
+            onsubmit="this.querySelector('button').disabled=true; this.querySelector('button').textContent='...'; this.querySelector('input').readOnly=true;">
+        <input type="text" name="message" placeholder="Something warm for a Montreal winter&hellip;" autocomplete="off">
+        <button type="submit">Send</button>
+      </form>
+    </aside>
+  </div>
+  <script>
+    // Keep the newest message in view as the conversation grows.
+    var m = document.getElementById('chat-messages');
+    if (m) { m.scrollTop = m.scrollHeight; }
+  </script>
+</body>
+</html>

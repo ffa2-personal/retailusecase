@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block title %}Checkout — {{ brand_name }}{% endblock %}
+{% block content %}
+<div class="page-head">
+  <h1>Checkout</h1>
+  <p class="disclaimer">Simulated checkout — no real payment is processed.</p>
+</div>
+
+<div class="cart-layout">
+  <table class="cart-table">
+    <thead><tr><th>Item</th><th>Size</th><th>Qty</th><th>Price</th></tr></thead>
+    <tbody>
+    {% for item in cart['items'] %}
+      <tr>
+        <td>
+          <div class="cart-line">
+            <span class="line-swatch" style="background-color: {{ color_hex(item.color_name) }}" aria-hidden="true"></span>
+            <span>
+              <span class="cart-item-name">{{ item.style_name }}</span>
+              <span class="product-meta">{{ item.color_name }}</span>
+            </span>
+          </div>
+        </td>
+        <td>{{ item.size }}</td>
+        <td>{{ item.quantity }}</td>
+        <td>${{ "%.2f"|format(item.line_total) }}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+
+  <aside class="summary">
+    <h2>Order Summary</h2>
+    <div class="summary-row"><span>Subtotal</span><span>${{ "%.2f"|format(cart.subtotal) }}</span></div>
+    <div class="summary-row"><span>Shipping</span><span>Complimentary</span></div>
+    <div class="summary-row total"><span>Total</span><span>${{ "%.2f"|format(cart.subtotal) }}</span></div>
+    <form method="post" action="{{ url_for('checkout_confirm') }}">
+      <button type="submit" class="button">Place Order</button>
+    </form>
+  </aside>
+</div>
+{% endblock %}

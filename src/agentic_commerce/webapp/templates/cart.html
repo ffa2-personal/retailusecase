@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block title %}Cart — {{ brand_name }}{% endblock %}
+{% block content %}
+<div class="page-head">
+  <h1>Your Cart</h1>
+</div>
+
+{% if cart['items'] %}
+<div class="cart-layout">
+  <table class="cart-table">
+    <thead><tr><th>Item</th><th>Size</th><th>Qty</th><th>Price</th><th></th></tr></thead>
+    <tbody>
+    {% for item in cart['items'] %}
+      <tr>
+        <td>
+          <div class="cart-line">
+            <span class="line-swatch" style="background-color: {{ color_hex(item.color_name) }}" aria-hidden="true"></span>
+            <span>
+              <span class="cart-item-name">{{ item.style_name }}</span>
+              <span class="product-meta">{{ item.color_name }}</span>
+            </span>
+          </div>
+        </td>
+        <td>{{ item.size }}</td>
+        <td>{{ item.quantity }}</td>
+        <td>${{ "%.2f"|format(item.line_total) }}</td>
+        <td>
+          <form method="post" action="{{ url_for('cart_remove') }}">
+            <input type="hidden" name="sku_id" value="{{ item.sku_id }}">
+            <button type="submit" class="button-link" aria-label="Remove {{ item.style_name }} from cart">Remove</button>
+          </form>
+        </td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+
+  <aside class="summary">
+    <h2>Summary</h2>
+    <div class="summary-row"><span>Subtotal</span><span>${{ "%.2f"|format(cart.subtotal) }}</span></div>
+    <div class="summary-row"><span>Shipping</span><span>Complimentary</span></div>
+    <div class="summary-row total"><span>Total</span><span>${{ "%.2f"|format(cart.subtotal) }}</span></div>
+    <a class="button" href="{{ url_for('checkout_view') }}">Proceed to Checkout</a>
+  </aside>
+</div>
+{% else %}
+<div class="empty-state">
+  <p>Your cart is empty.</p>
+  <a class="button button-ghost" href="{{ url_for('home') }}">Continue Shopping</a>
+</div>
+{% endif %}
+{% endblock %}

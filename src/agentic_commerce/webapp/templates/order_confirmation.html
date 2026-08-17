@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block title %}Order Confirmed — {{ brand_name }}{% endblock %}
+{% block content %}
+<div class="page-head">
+  <h1>Thank You</h1>
+  <p class="confirmation">Your order is confirmed. A copy of this confirmation would be on its way to your inbox.</p>
+</div>
+
+<div class="order-badge">Order {{ order.order_id }} &middot; {{ order.placed_at }}</div>
+
+<div class="cart-layout">
+  <table class="cart-table">
+    <thead><tr><th>Item</th><th>Size</th><th>Qty</th><th>Price</th></tr></thead>
+    <tbody>
+    {% for item in order['items'] %}
+      <tr>
+        <td>
+          <div class="cart-line">
+            <span class="line-swatch" style="background-color: {{ color_hex(item.color_name) }}" aria-hidden="true"></span>
+            <span>
+              <span class="cart-item-name">{{ item.style_name }}</span>
+              <span class="product-meta">{{ item.color_name }}</span>
+            </span>
+          </div>
+        </td>
+        <td>{{ item.size }}</td>
+        <td>{{ item.quantity }}</td>
+        <td>${{ "%.2f"|format(item.line_total) }}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+
+  <aside class="summary">
+    <h2>Order Summary</h2>
+    <div class="summary-row"><span>Subtotal</span><span>${{ "%.2f"|format(order.subtotal) }}</span></div>
+    <div class="summary-row"><span>Tax</span><span>${{ "%.2f"|format(order.tax) }}</span></div>
+    <div class="summary-row"><span>Shipping</span><span>Complimentary</span></div>
+    <div class="summary-row total"><span>Total</span><span>${{ "%.2f"|format(order.total) }}</span></div>
+    <a class="button button-ghost" href="{{ url_for('home') }}">Continue Shopping</a>
+  </aside>
+</div>
+
+<p class="disclaimer">This is a simulated order for demo purposes — no real payment was processed.</p>
+{% endblock %}

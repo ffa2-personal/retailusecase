@@ -4,5 +4,7 @@ __pycache__/
 data/raw/
 data/warehouse/
 data/stream/
+data/agentic_commerce/
 .ipynb_checkpoints/
 *.egg-info/
+.env
